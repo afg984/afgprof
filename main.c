@@ -1,4 +1,7 @@
+#include "shared.h"
+
 void a() {
+    shared_function();
 }
 
 

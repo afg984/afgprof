@@ -3,8 +3,11 @@ CC = $(TOOLCHAIN)gcc
 CFLAGS = -pie
 AR = $(TOOLCHAIN)ar
 
-a.out: main.c gmon.a
-	$(CC) $(CFLAGS) -pg -g $^
+a.out: main.c gmon.a libshared.so
+	$(CC) $(CFLAGS) -pg $^ -L. -lshared
+
+libshared.so: shared.c
+	$(CC) $(CFLAGS) -pg -shared $^ -o $@
 
 .PHONY: clean
 clean:
@@ -20,10 +23,11 @@ gmon.a: gmon.o mcount.o
 	$(AR) r $@ $^
 
 .PHONY: gmon.out.txt
-gmon.out.txt: a.out
+gmon.out.txt: a.out libshared.so
 	adb root
 	adb push a.out /data
-	adb shell "/data/a.out > /data/gmon.out.txt"
+	adb push libshared.so /data
+	adb shell "LD_LIBRARY_PATH=/data /data/a.out > /data/gmon.out.txt"
 	adb pull /data/gmon.out.txt
 
 .PHONY: profile

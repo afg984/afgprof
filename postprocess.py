@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import bisect
 import functools
 import subprocess
 import collections
 import re
 import os
-import functools
 
 
 if False:
@@ -73,8 +71,8 @@ def file_offset_to_function(symbols, file_offset):
     if filename in symbols:
         for low, size, name in symbols[filename]:
             if low <= offset < low + size:
-                return name
-    return '?'
+                return '{}:{}'.format(filename, name)
+    return filename + ':?'
 
 
 def symbols_from_file(filename='a.out'):
@@ -126,6 +124,7 @@ def main(filename):
         symbols = {}
 
         symbols['a.out'] = symbols_from_file('a.out')
+        symbols['libshared.so'] = symbols_from_file('libshared.so')
 
         for lrof, pcof in calls:
             print(
@@ -133,7 +132,6 @@ def main(filename):
                 '->',
                 file_offset_to_function(symbols, pcof)
             )
-
 
 
 if __name__ == '__main__':
