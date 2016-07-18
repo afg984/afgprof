@@ -189,7 +189,7 @@ if __name__ == '__main__':
         '--one-by-one',
         dest='writer_class',
         default=OneByOneWriter,
-        help='print caller-callee pairs one by one',
+        help='print caller-callee pairs one by one (default)',
         action='store_const',
         const=OneByOneWriter
     )
