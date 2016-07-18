@@ -66,23 +66,20 @@ def address_to_file_offset(maps, address):
 
 def file_offset_to_function(symbols, file_offset):
     if file_offset is None:
-        return '?', '?'
+        return '?'
     path, offset = file_offset
     filename = os.path.basename(path)
     if filename in symbols:
         for low, size, name in symbols[filename]:
             if low <= offset < low + size:
-                return filename, name
-    return filename, '?'
+                return '{}@{}'.format(name, filename)
+    return '?@' + filename
 
 
 class OneByOneWriter:
 
-    def call(self, caller_file, caller_name, callee_file, callee_name):
-        print(
-            '{}@{} -> {}@{}'.format(
-                caller_name, caller_file, callee_name, callee_file)
-        )
+    def call(self, caller, callee):
+        print(caller, '->', callee)
 
     def finalize(self):
         pass
@@ -93,12 +90,37 @@ class NCallsWriter:
     def __init__(self):
         self.count = collections.Counter()
 
-    def call(self, callee_file, callee_name, **kw):
-        self.count[callee_file, callee_name] += 1
+    def call(self, callee, **kw):
+        self.count[callee] += 1
 
     def finalize(self):
-        for (file, name), n in self.count.most_common():
-            print('{}\t{}@{}'.format(n, name, file))
+        for func, n in self.count.most_common():
+            print('{}\t{}'.format(n, func))
+
+
+class DotWriter:
+
+    def __init__(self):
+        self.calls = collections.Counter()
+
+    @staticmethod
+    def quote(string):
+        return '"{}"'.format(string.replace('"', r'\"'))
+
+    def call(self, caller, callee):
+        self.calls[caller, callee] += 1
+
+    def finalize(self):
+        print('digraph {')
+        for (caller, callee), n in self.calls.items():
+            print(
+                '  {} -> {} [label={}];'.format(
+                    self.quote(caller),
+                    self.quote(callee),
+                    n
+                )
+            )
+        print('}')
 
 
 def symbols_from_file(filename='a.out'):
@@ -159,10 +181,8 @@ def main(filename, executables, writer_class=OneByOneWriter):
 
         for lrof, pcof in calls:
             kwargs = {}
-            kwargs['caller_file'], kwargs['caller_name'] = \
-                file_offset_to_function(symbols, lrof)
-            kwargs['callee_file'], kwargs['callee_name'] = \
-                file_offset_to_function(symbols, pcof)
+            kwargs['caller'] = file_offset_to_function(symbols, lrof)
+            kwargs['callee'] = file_offset_to_function(symbols, pcof)
             writer.call(**kwargs)
 
         writer.finalize()
@@ -189,16 +209,23 @@ if __name__ == '__main__':
         '--one-by-one',
         dest='writer_class',
         default=OneByOneWriter,
-        help='print caller-callee pairs one by one (default)',
+        help='output caller-callee pairs one by one (default)',
         action='store_const',
         const=OneByOneWriter
     )
     writer.add_argument(
         '--ncalls',
         dest='writer_class',
-        help='print called functions sorted by number of calls',
+        help='output called functions sorted by number of calls',
         action='store_const',
         const=NCallsWriter
+    )
+    writer.add_argument(
+        '--dotgraph',
+        dest='writer_class',
+        help='output dot graph',
+        action='store_const',
+        const=DotWriter
     )
 
     args = parser.parse_args()
