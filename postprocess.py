@@ -73,7 +73,7 @@ def file_offset_to_function(symbols, file_offset):
         for low, size, name in symbols[filename]:
             if low <= offset < low + size:
                 return filename, name
-    return '?', filename
+    return filename, '?'
 
 
 class OneByOneWriter:
