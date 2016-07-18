@@ -6,6 +6,7 @@ import functools
 import os
 import re
 import subprocess
+import sys
 
 
 if False:
@@ -116,7 +117,7 @@ def symbols_from_file(filename='a.out'):
     return symbols
 
 
-def main(filename, writer_class=OneByOneWriter):
+def main(filename, executables, writer_class=OneByOneWriter):
     with open(filename) as file:
         assert next(file) == '=== start of monstartup() ===\n'
 
@@ -148,9 +149,11 @@ def main(filename, writer_class=OneByOneWriter):
 
         symbols = {}
 
-        symbols['a.out'] = symbols_from_file('a.out')
-        symbols['libshared.so'] = symbols_from_file('libshared.so')
-        symbols['libc.so'] = symbols_from_file('libc.so')
+        for executable in executables:
+            short = os.path.basename(executable)
+            if short in symbols:
+                print('Warn: duplicate {!r}'.format(short), file=sys.stderr)
+            symbols[short] = symbols_from_file(executable)
 
         writer = writer_class()
 
@@ -167,7 +170,20 @@ def main(filename, writer_class=OneByOneWriter):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', default='gmon.out.txt', nargs='?')
+    parser.add_argument(
+        'filename',
+        metavar='GMONOUT',
+        default='gmon.out.txt',
+        nargs='?',
+        help='profile output file, defaults to gmon.out.txt'
+    )
+    parser.add_argument(
+        'executables',
+        metavar='OBJECT',
+        default=['a.out'],
+        nargs='*',
+        help='object files to find symbols in, defaults to a.out'
+    )
     writer = parser.add_mutually_exclusive_group()
     writer.add_argument(
         '--one-by-one',

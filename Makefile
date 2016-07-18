@@ -33,4 +33,4 @@ gmon.out.txt: a.out libshared.so
 
 .PHONY: profile
 profile: gmon.out.txt
-	python3 postprocess.py
+	./postprocess.py gmon.out.txt a.out libshared.so
