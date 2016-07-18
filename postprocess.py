@@ -65,14 +65,26 @@ def address_to_file_offset(maps, address):
 
 def file_offset_to_function(symbols, file_offset):
     if file_offset is None:
-        return '?'
+        return '?', '?'
     path, offset = file_offset
     filename = os.path.basename(path)
     if filename in symbols:
         for low, size, name in symbols[filename]:
             if low <= offset < low + size:
-                return '{}:{}'.format(filename, name)
-    return filename + ':?'
+                return filename, name
+    return '?', filename
+
+
+class OneByOneWriter:
+
+    def call(self, caller_file, caller_name, callee_file, callee_name):
+        print(
+            '{}@{} -> {}@{}'.format(
+                caller_name, caller_file, callee_name, callee_file)
+        )
+
+    def finalize(self):
+        pass
 
 
 def symbols_from_file(filename='a.out'):
@@ -91,7 +103,7 @@ def symbols_from_file(filename='a.out'):
     return symbols
 
 
-def main(filename):
+def main(filename, writer_class=OneByOneWriter):
     with open(filename) as file:
         assert next(file) == '=== start of monstartup() ===\n'
 
@@ -125,13 +137,19 @@ def main(filename):
 
         symbols['a.out'] = symbols_from_file('a.out')
         symbols['libshared.so'] = symbols_from_file('libshared.so')
+        symbols['libc.so'] = symbols_from_file('libc.so')
+
+        writer = writer_class()
 
         for lrof, pcof in calls:
-            print(
-                file_offset_to_function(symbols, lrof),
-                '->',
+            kwargs = {}
+            kwargs['caller_file'], kwargs['caller_name'] = \
+                file_offset_to_function(symbols, lrof)
+            kwargs['callee_file'], kwargs['callee_name'] = \
                 file_offset_to_function(symbols, pcof)
-            )
+            writer.call(**kwargs)
+
+        writer.finalize()
 
 
 if __name__ == '__main__':
