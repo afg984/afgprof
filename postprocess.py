@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import functools
-import subprocess
 import collections
-import re
+import functools
 import os
+import re
+import subprocess
 
 
 if False:
@@ -87,6 +87,19 @@ class OneByOneWriter:
         pass
 
 
+class NCallsWriter:
+
+    def __init__(self):
+        self.count = collections.Counter()
+
+    def call(self, callee_file, callee_name, **kw):
+        self.count[callee_file, callee_name] += 1
+
+    def finalize(self):
+        for (file, name), n in self.count.most_common():
+            print('{}\t{}@{}'.format(n, name, file))
+
+
 def symbols_from_file(filename='a.out'):
     symbols = []
     with subprocess.Popen(
@@ -155,6 +168,22 @@ def main(filename, writer_class=OneByOneWriter):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', default='gmon.out.txt', nargs='?')
+    writer = parser.add_mutually_exclusive_group()
+    writer.add_argument(
+        '--one-by-one',
+        dest='writer_class',
+        default=OneByOneWriter,
+        help='print caller-callee pairs one by one',
+        action='store_const',
+        const=OneByOneWriter
+    )
+    writer.add_argument(
+        '--ncalls',
+        dest='writer_class',
+        help='print called functions sorted by number of calls',
+        action='store_const',
+        const=NCallsWriter
+    )
 
     args = parser.parse_args()
 
