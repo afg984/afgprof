@@ -6,13 +6,14 @@ gprof for android
 Demo
 ----
 
-1. connect to rooted android device
-2. run `make profile`
+1. make sure android toolchain (arm-linux-androideabi-*) and adb is in PATH
+2. connect to rooted android device
+3. run `make profile`
 
 Generate dot graph
 ------------------
 
-`./postprocess.py gmon.out.txt a.out libshaed.so --dotgraph`
+`./postprocess.py gmon.out.txt a.out libshared.so --dotgraph`
 
 Additional options
 
