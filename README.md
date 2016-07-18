@@ -12,7 +12,7 @@ Demo
 Generate dot graph
 ------------------
 
-`./postprocess.py --dotgraph`
+`./postprocess.py gmon.out.txt a.out libshaed.so --dotgraph`
 
 Additional options
 
