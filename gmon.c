@@ -2,23 +2,27 @@
 #include <stdlib.h>
 
 
+FILE* output;
+
 void _mcleanup() {
-    puts("=== _mcleanup() invoked ===");
+    fputs("=== _mcleanup() invoked ===\n", output);
+    fclose(output);
 }
 
 void monstartup() {
-    puts("=== start of monstartup() ===");
+    output = fopen("/data/gmon.out.txt", "w");
+    fputs("=== start of monstartup() ===\n", output);
     FILE* file = fopen("/proc/self/maps", "r");
     char buf[80];
     if (file) {
         int n;
         while (0 != (n = fread(buf, 1, sizeof(buf), file))) {
-            fwrite(buf, 1, n, stdout);
+            fwrite(buf, 1, n, output);
             if (n != sizeof(buf)) break;
         }
     }
     atexit(_mcleanup);
-    puts("=== end of monstartup() ===");
+    fputs("=== end of monstartup() ===\n", output);
 }
 
 void __mcount_internal(u_long caller_lr, u_long caller_pc) {
@@ -27,5 +31,5 @@ void __mcount_internal(u_long caller_lr, u_long caller_pc) {
         monstartup();
     }
     called = 1;
-    printf("LR = %x ; PC = %x\n", caller_lr, caller_pc);
+    fprintf(output, "LR = %x ; PC = %x\n", caller_lr, caller_pc);
 }

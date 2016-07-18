@@ -25,9 +25,10 @@ gmon.a: gmon.o mcount.o
 .PHONY: gmon.out.txt
 gmon.out.txt: a.out libshared.so
 	adb root
+	adb shell rm -f /data/gmon.out.txt
 	adb push a.out /data
 	adb push libshared.so /data
-	adb shell "LD_LIBRARY_PATH=/data /data/a.out > /data/gmon.out.txt"
+	adb shell "LD_LIBRARY_PATH=/data /data/a.out"
 	adb pull /data/gmon.out.txt
 
 .PHONY: profile
