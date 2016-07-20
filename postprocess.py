@@ -6,6 +6,7 @@ import functools
 import os
 import re
 import subprocess
+import struct
 import sys
 
 
@@ -140,52 +141,41 @@ def symbols_from_file(filename='a.out'):
 
 
 def main(filename, executables, writer_class=OneByOneWriter):
-    with open(filename) as file:
-        assert next(file) == '=== start of monstartup() ===\n'
+    with open(filename, mode='rb') as file:
+        data = file.read()
 
-        maps = []
+    maps_bin, _, aes = data.partition(b'=== end of monstartup() ===\n')
+    cdata, end, _ = aes.rpartition(b'=== _mcleanup() invoked ===\n')
 
-        for line in file:
-            if '=== end of monstartup() ===\n' == line:
-                break
-            mapline = tomap(line)
-            if 'x' in mapline.perms:
-                maps.append(mapline)
+    assert maps_bin
+    assert end
 
-        calls = []
+    maps = []
 
-        for line in file:
-            if line == '=== _mcleanup() invoked ===\n':
-                break
+    for line in maps_bin.decode().splitlines():
+        mapline = tomap(line)
+        if 'x' in mapline.perms:
+            maps.append(mapline)
 
-            lr, pc = map(
-                int16,
-                mcount_pattern.match(line).groups())
+    symbols = {}
 
-            calls.append((
-                address_to_file_offset(maps, lr),
-                address_to_file_offset(maps, pc)
-            ))
-        else:
-            assert False
+    for executable in executables:
+        short = os.path.basename(executable)
+        if short in symbols:
+            print('Warn: duplicate {!r}'.format(short), file=sys.stderr)
+        symbols[short] = symbols_from_file(executable)
 
-        symbols = {}
+    writer = writer_class()
 
-        for executable in executables:
-            short = os.path.basename(executable)
-            if short in symbols:
-                print('Warn: duplicate {!r}'.format(short), file=sys.stderr)
-            symbols[short] = symbols_from_file(executable)
+    for lr, pc in struct.iter_unpack('II', cdata):
+        lrof = address_to_file_offset(maps, lr)
+        pcof = address_to_file_offset(maps, pc)
+        kwargs = {}
+        kwargs['caller'] = file_offset_to_function(symbols, lrof)
+        kwargs['callee'] = file_offset_to_function(symbols, pcof)
+        writer.call(**kwargs)
 
-        writer = writer_class()
-
-        for lrof, pcof in calls:
-            kwargs = {}
-            kwargs['caller'] = file_offset_to_function(symbols, lrof)
-            kwargs['callee'] = file_offset_to_function(symbols, pcof)
-            writer.call(**kwargs)
-
-        writer.finalize()
+    writer.finalize()
 
 
 if __name__ == '__main__':
