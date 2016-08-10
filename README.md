@@ -19,18 +19,18 @@ Prerequisites
 Building
 --------
 
-gmon.a:
+*   gmon.a:
 
-In `gmon/`: `make`
+    In `gmon/`: `make`
 
-afgprof (post-processing tool):
+*   afgprof (post-processing tool):
 
-TODO
+    `go get github.com/afg984/afgprof/cmd/afgprof`
 
 Usage
 -----
 
-1.  Compile your android program with -pg and link with `gmon.a`.
+1.  Compile your android program with `-pg` and link with `gmon.a`.
 
 2.  Prepare output directory
 
@@ -50,3 +50,25 @@ Usage
     `afgprof 19212` (the value 19212 depends on your application's pid)
 
     (see below for JSON format)
+
+
+Output format
+-------------
+
+```
+{
+    "calls": [{
+        "caller": int,  // runtime pc
+        "callee": int,  // runtime pc
+        "count": int,  // call count
+    }],
+    "index": [{
+        "pc": int,  // runtime program counter
+        "symbol": string,  // the name of the symbol
+        "object": string,  // the object (*.so, *.out, etc) where the symbol lives in
+        "offset": int,  // offset according to object
+        "source_file": string,
+        "line_number": string,  // line number of the source file
+    }]
+}
+```
