@@ -17,6 +17,9 @@ void c() {
 }
 
 
+int fic(int n);
+
+
 int fib(int n) {
     if (n < 3) return 1;
     else return fib(n - 1) + fic(n - 2);
@@ -36,4 +39,5 @@ int main() {
     for (i = 0; i < 32; ++ i) {
         printf("fib(%d) = %d\n", i, fib(i));
     }
+    return 0;
 }

@@ -1,10 +1,10 @@
 TOOLCHAIN = arm-linux-androideabi-
-CC = $(TOOLCHAIN)gcc
-CFLAGS = -pie -march=armv7-a
+CC = $(TOOLCHAIN)gcc -O3
+CFLAGS = -pie -march=armv7-a -Wall -Wextra
 AR = $(TOOLCHAIN)ar
 
 a.out: main.c gmon.a libshared.so
-	$(CC) $(CFLAGS) -pg $^ -L. -lshared
+	$(CC) $(CFLAGS) -g -pg $^ -L. -lshared
 
 libshared.so: shared.c
 	$(CC) $(CFLAGS) -pg -shared $^ -o $@
@@ -25,11 +25,13 @@ gmon.a: gmon.o mcount.o
 .PHONY: gmon.out.txt
 gmon.out.txt: a.out libshared.so
 	adb root
-	adb shell rm -f /data/gmon.out.txt
+	adb shell rm -rf /data/gmon
+	adb shell mkdir /data/gmon
+	adb shell chmod 777 /data/gmon
 	adb push a.out /data
 	adb push libshared.so /data
 	adb shell "time LD_LIBRARY_PATH=/data /data/a.out"
-	adb pull /data/gmon.out.txt
+	adb pull /data/gmon gmon
 
 .PHONY: profile
 profile: gmon.out.txt

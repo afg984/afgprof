@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/sendfile.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,17 +11,23 @@
 FILE* file;
 
 void _mcleanup() {
-    fputs("=== _mcleanup() invoked ===\n", file);
     fclose(file);
 }
 
 void monstartup() {
-    file = fopen("/data/gmon.out.txt", "w");
+    pid_t pid = getpid();
+    char filename[80];
+    sprintf(filename, "/data/gmon/%d", pid);
+    mkdir(filename, 0755);
+    sprintf(filename, "/data/gmon/%d/maps", pid);
+    file = fopen(filename, "w");
     int mfd = open("/proc/self/maps", O_RDONLY);
     sendfile(fileno(file), mfd, 0, SIZE_MAX);
     close(mfd);
+    fclose(file);
+    sprintf(filename, "/data/gmon/%d/unmapped-calls", pid);
+    file = fopen(filename, "w");
     atexit(_mcleanup);
-    fputs("=== end of monstartup() ===\n", file);
 }
 
 void __mcount_internal(u_long caller_lr, u_long caller_pc) {
