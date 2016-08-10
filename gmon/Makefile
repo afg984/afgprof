@@ -22,8 +22,8 @@ gmon.o: gmon.c
 gmon.a: gmon.o mcount.o
 	$(AR) r $@ $^
 
-.PHONY: gmon.out.txt
-gmon.out.txt: a.out libshared.so
+.PHONY: profile
+profile: a.out libshared.so
 	adb root
 	adb shell rm -rf /data/gmon
 	adb shell mkdir /data/gmon
@@ -32,7 +32,3 @@ gmon.out.txt: a.out libshared.so
 	adb push libshared.so /data
 	adb shell "time LD_LIBRARY_PATH=/data /data/a.out"
 	adb pull /data/gmon gmon
-
-.PHONY: profile
-profile: gmon.out.txt
-	./postprocess.py gmon.out.txt a.out libshared.so
