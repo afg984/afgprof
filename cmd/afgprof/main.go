@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -83,13 +84,28 @@ func (p ByPC) Len() int           { return len(p) }
 func (p ByPC) Less(i, j int) bool { return p[i].PC < p[j].PC }
 func (p ByPC) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+var concurrency = flag.Int("j", 1, "number of current addr2line workers to run simultaneously")
+var object_directory = flag.String("objdir", "objects", "directory to find compiled objects in")
+
+func Usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [options] DIRECTORY\n\n", os.Args[0])
+	fmt.Fprintln(os.Stderr, "  DIRECTORY")
+	fmt.Fprintln(os.Stderr, "    \tdirectory to find profile data")
+	flag.PrintDefaults()
+}
+
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s DIRECTORY\n", os.Args[0])
-		os.Exit(1)
+	flag.Usage = Usage
+	flag.Parse()
+
+	remaining_args := flag.Args()
+
+	if len(flag.Args()) != 1 {
+		flag.Usage()
+		os.Exit(2)
 	}
 
-	directory := os.Args[1]
+	directory := remaining_args[0]
 	maps_fn := path.Join(directory, "maps")
 	map_, err := ParseMapX(maps_fn)
 	check(err)
@@ -123,7 +139,7 @@ func main() {
 		for offset := range offsets {
 			addresses = append(addresses, offset)
 		}
-		results := Addr2Line(path.Join("objects", path.Base(pathname)), addresses, 8)
+		results := Addr2Line(path.Join("objects", path.Base(pathname)), addresses, *concurrency)
 		for _, result := range results {
 			address := result.Address
 			offsets[address].Symbol = result.Symbol

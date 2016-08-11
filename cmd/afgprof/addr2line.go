@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -21,10 +22,10 @@ type AddrInfo struct {
 	Line     string
 }
 
-const command = "eu-addr2line"
+var command = flag.String("addr2line", "eu-addr2line", "specify the addr2line command")
 
 func addr2line_worker(ctx context.Context, filename string, addresses []uint64, ch chan<- AddrInfo) error {
-	cmd := exec.Command(command, "-f", "-e", filename)
+	cmd := exec.Command(*command, "-f", "-e", filename)
 
 	stdin := new(bytes.Buffer)
 	cmd.Stdin = stdin
