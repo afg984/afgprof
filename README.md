@@ -45,12 +45,29 @@ Usage
 
     `adb pull /data/gmon`
 
+    The result is a directory named with your application's pid
+
 5.  Use the post-process tool to read the profile result, it outputs JSON to stdout
 
-    `afgprof 19212` (the value 19212 depends on your application's pid)
+    `afgprof 19212` (for example, if your pid is 19212)
 
     (see below for JSON format)
 
+Command Line Options
+--------------------
+
+```
+Usage: afgprof [options] DIRECTORY
+
+  DIRECTORY
+        directory to find profile data
+  -addr2line string
+        specify the addr2line command (default "eu-addr2line")
+  -j int
+        number of addr2line workers to run simultaneously (default 1)
+  -objdir string
+        directory to find compiled objects in (default "objects")
+```
 
 Output format
 -------------

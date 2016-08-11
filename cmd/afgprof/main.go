@@ -84,7 +84,7 @@ func (p ByPC) Len() int           { return len(p) }
 func (p ByPC) Less(i, j int) bool { return p[i].PC < p[j].PC }
 func (p ByPC) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-var concurrency = flag.Int("j", 1, "number of current addr2line workers to run simultaneously")
+var concurrency = flag.Int("j", 1, "number of addr2line workers to run simultaneously")
 var object_directory = flag.String("objdir", "objects", "directory to find compiled objects in")
 
 func Usage() {
