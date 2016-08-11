@@ -6,7 +6,7 @@ Native code profiler for Android
 Features
 --------
 
-* Exact call count
+* Call count
 * Post-process tool resolves to symbol and source code line number
 
 Prerequisites
@@ -30,7 +30,9 @@ Building
 Usage
 -----
 
-1.  Compile your android program with `-pg` and link with `gmon.a`.
+1.  Compile your android program or app with `-pg` and link with `gmon.a`.
+
+    `gmon/` also contains a example
 
 2.  Prepare output directory
 
@@ -47,7 +49,13 @@ Usage
 
     The result is a directory named with your application's pid
 
-5.  Use the post-process tool to read the profile result, it outputs JSON to stdout
+5.  Put your application's native binaries (*.so, *.out, etc) to the directory `objects/`
+
+    They are used by `afgprof` to resolve symbols and line numbers.
+
+    If you want to put them elsewhere, you can specify it via the `-objdir` option.
+
+6.  Run `afgprof <pid>` to read the profile result, it outputs JSON to stdout
 
     `afgprof 19212` (for example, if your pid is 19212)
 
