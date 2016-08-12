@@ -139,7 +139,7 @@ func main() {
 		for offset := range offsets {
 			addresses = append(addresses, offset)
 		}
-		results := Addr2Line(path.Join("objects", path.Base(pathname)), addresses, *concurrency)
+		results := Addr2Line(path.Join(*object_directory, path.Base(pathname)), addresses, *concurrency)
 		for _, result := range results {
 			address := result.Address
 			offsets[address].Symbol = result.Symbol
