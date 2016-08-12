@@ -76,7 +76,7 @@ func addr2line_worker(ctx context.Context, filename string, addresses []uint64, 
 			}
 		}
 	}
-	return nil
+	return cmd.Wait()
 }
 
 func Addr2Line(filename string, addresses []uint64, workers int) []AddrInfo {
