@@ -42,25 +42,27 @@ func addr2line_worker(ctx context.Context, filename string, addresses []uint64, 
 	stdout := bufio.NewReader(stdout_pipe)
 
 	err = cmd.Start()
-	defer cmd.Process.Kill()
 
 	cmd.Stderr = os.Stderr
 
 	if err != nil {
+		cmd.Process.Kill()
 		return err
 	}
 
 	for _, address := range addresses {
 		select {
 		case <-ctx.Done():
-			cmd.Process.Kill()
+			return cmd.Process.Kill()
 		default:
 			symbol, err := stdout.ReadString('\n')
 			if err != nil {
+				cmd.Process.Kill()
 				return err
 			}
 			location, err := stdout.ReadString('\n')
 			if err != nil {
+				cmd.Process.Kill()
 				return err
 			}
 			location = strings.TrimSpace(location)
