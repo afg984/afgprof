@@ -273,7 +273,7 @@ def get_parser():
     parser.add_argument(
         '-j',
         metavar='N',
-        help='spawn N addr2line processes.'
+        help='spawn N addr2line processes. '
         'If N is less than 1, afgprof will use the number of CPUs as N',
         type=int,
         default=1
