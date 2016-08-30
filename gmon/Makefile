@@ -11,7 +11,7 @@ libshared.so: shared.c
 
 .PHONY: clean
 clean:
-	rm -f $(wildcard *.a *.o a.out gprof.out.txt)
+	rm -f $(wildcard *.a *.o a.out libshared.so)
 
 mcount.o: mcount.s
 	$(CC) $(CFLAGS) -c $^
