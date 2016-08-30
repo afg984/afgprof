@@ -76,6 +76,18 @@ make profile
 ../afgprof.py gmon/1468 | ../afgprof2dot.py | dot -Tsvg -o callgraph.svg
 ```
 
+To use clang:
+
+```
+make clean
+make profile COMPILER=clang
+```
+
+Options
+-------
+
+see `afgprof.py --help` and `afgprof2dot.py --help`
+
 LICENSE
 -------
 
