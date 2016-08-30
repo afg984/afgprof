@@ -36,4 +36,4 @@
 *.su
 
 # Output
-gmon.out.txt
+/gmon/gmon
