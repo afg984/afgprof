@@ -97,3 +97,10 @@ Output format
     }]
 }
 ```
+
+LICENSE
+-------
+
+`afgprof2dot.py` is adapted from https://github.com/jrfonseca/gprof2dot, and is licensed under LGPL v3 or later.
+
+Other code here is licensed under the MIT license.
