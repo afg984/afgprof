@@ -45,17 +45,20 @@ Usage
 
     The result is a directory named with your application's pid
 
-5.  Put your application's native binaries (*.so, *.out, etc) to the directory `objects/`
+5.  Put your application's native binaries (*.so, *.out, etc) to the current working directory
 
-    They are used by `afgprof` to resolve symbols and line numbers.
+    They are used by `afgprof.py` to resolve symbols and line numbers.
 
     If you want to put them elsewhere, you can specify it via the `--objdir` option.
 
-6.  Run `afgprof <pid>` to read the profile result, it outputs JSON to stdout
+6.  Run `afgprof.py <pid>` to read the profile result, it outputs JSON to stdout
 
     `afgprof.py 19212` (for example, if your pid is 19212)
+    
+Call Graph
+----------
 
-    (see below for JSON format)
+`afgprof.py OPTIONS | afgprof2dot.py | dot -Tsvg callgraph.svg`
 
 LICENSE
 -------
