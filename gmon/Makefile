@@ -4,11 +4,14 @@ CC = $(TOOLCHAIN)$(COMPILER)
 CFLAGS = -O3 -pie -march=armv7-a -Wall -Wextra
 AR = $(TOOLCHAIN)ar
 
-a.out: main.c gmon.a libshared.so
-	$(CC) $(CFLAGS) -g -pg $^ -L. -lshared
+a.out: main.o gmon.a libshared.so
+	$(CC) $(CFLAGS) -O0 -g -pg $^ -L. -lshared
 
 libshared.so: shared.c
 	$(CC) $(CFLAGS) -pg -shared $^ -o $@
+
+main.o: main.c
+	$(CC) $(CFLAGS) -O0 -c -pg $^
 
 .PHONY: clean
 clean:
