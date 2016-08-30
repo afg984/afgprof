@@ -95,7 +95,7 @@ void __mcount_internal(u_long lr, u_long pc) {
     static int called = 0;
     if (!called) {
         monstartup();
+        called = 1;
     }
-    called = 1;
     increment(lr, pc);
 }
