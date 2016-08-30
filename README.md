@@ -8,12 +8,14 @@ Features
 
 * Call count
 * Post-process tool resolves to symbol and source code line number
+* Dot graph tool
+* Supports clang
 
 Prerequisites
 -------------
 
 * Python 3.5 or later
-* Android toolchain (currently only gcc is supported)
+* Android toolchain
 * Rooted android device
 
 Building
@@ -59,6 +61,20 @@ Call Graph
 ----------
 
 `afgprof.py OPTIONS | afgprof2dot.py | dot -Tsvg callgraph.svg`
+
+Example
+-------
+
+The makefile in `gmon/` contains an example of how to build a gprof-enabled executable
+
+```
+adb shell mkdir -p /data/gmon
+adb shell chmod 777 /data/gmon
+cd gmon
+make profile
+# assuming pid is 1468
+../afgprof.py gmon/1468 | ../afgprof2dot.py | dot -Tsvg -o callgraph.svg
+```
 
 LICENSE
 -------
