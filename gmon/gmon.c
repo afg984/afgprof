@@ -1,5 +1,7 @@
 #include <endian.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,6 +12,11 @@
 #include <unistd.h>
 
 #include "tree.h"
+
+
+static FILE *file;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static volatile int term_received = 0;
 
 struct call_count {
     union {
@@ -50,8 +57,6 @@ static void increment(uint32_t lr, uint32_t pc) {
     }
 }
 
-FILE *file;
-
 void _mcleanup() {
     struct call_count *cc;
     RB_FOREACH(cc, call_count_head, &head) { fwrite(cc, 1, 16, file); }
@@ -60,8 +65,18 @@ void _mcleanup() {
 
 void sighandler(int sig) {
     (void)sig;
-    _mcleanup();
-    abort();
+    switch (pthread_mutex_trylock(&mutex)) {
+    case 0:
+        _mcleanup();
+        abort();
+        return;
+    case EBUSY:
+        term_received = 1;
+        return;
+    default:
+        abort();
+        // this shall not happen
+    }
 }
 
 struct sigaction sa;
@@ -92,10 +107,20 @@ void monstartup() {
 }
 
 void __mcount_internal(u_long lr, u_long pc) {
+    pthread_mutex_lock(&mutex);
+
     static int called = 0;
+
     if (!called) {
         monstartup();
         called = 1;
     }
     increment(lr, pc);
+
+    if (term_received) {
+        _mcleanup();
+        abort();
+    }
+
+    pthread_mutex_unlock(&mutex);
 }
