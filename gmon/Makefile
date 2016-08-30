@@ -1,5 +1,6 @@
 TOOLCHAIN = arm-linux-androideabi-
-CC = $(TOOLCHAIN)gcc
+COMPILER = gcc
+CC = $(TOOLCHAIN)$(COMPILER)
 CFLAGS = -O3 -pie -march=armv7-a -Wall -Wextra
 AR = $(TOOLCHAIN)ar
 
