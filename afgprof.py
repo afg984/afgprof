@@ -131,7 +131,7 @@ class Addr2line:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
             task = gather_cancel(
-                *(self._worker(i) for i in range(self.workers)),
+                *(self._worker() for i in range(self.workers)),
                 loop=self.loop,
             )
             self.loop.run_until_complete(task)
@@ -139,7 +139,7 @@ class Addr2line:
         finally:
             self.loop.close()
 
-    async def _worker(self, i):
+    async def _worker(self):
         process = await asyncio.create_subprocess_exec(
             self.command,
             '-f',
@@ -151,7 +151,7 @@ class Addr2line:
         )
 
         input_completed = False
-        queue = asyncio.Queue(maxsize=10, loop=self.loop)
+        queue = asyncio.Queue(maxsize=100, loop=self.loop)
 
         async def input_worker():
             for address in self.address_iter:
