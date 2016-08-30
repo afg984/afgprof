@@ -1,6 +1,6 @@
 TOOLCHAIN = arm-linux-androideabi-
-CC = $(TOOLCHAIN)gcc -O3
-CFLAGS = -pie -march=armv7-a -Wall -Wextra
+CC = $(TOOLCHAIN)gcc
+CFLAGS = -O3 -pie -march=armv7-a -Wall -Wextra
 AR = $(TOOLCHAIN)ar
 
 a.out: main.c gmon.a libshared.so
