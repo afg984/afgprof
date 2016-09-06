@@ -8,12 +8,14 @@ Features
 
 * Call count
 * Post-process tool resolves to symbol and source code line number
+* Dot graph tool
+* Supports clang
 
 Prerequisites
 -------------
 
-* Go compiler
-* Android toolchain (currently only gcc is supported)
+* Python 3.5 or later
+* Android toolchain
 * Rooted android device
 
 Building
@@ -22,10 +24,6 @@ Building
 *   gmon.a:
 
     In `gmon/`: `make`
-
-*   afgprof (post-processing tool):
-
-    `go get github.com/afg984/afgprof/cmd/afgprof`
 
 Usage
 -----
@@ -49,51 +47,54 @@ Usage
 
     The result is a directory named with your application's pid
 
-5.  Put your application's native binaries (*.so, *.out, etc) to the directory `objects/`
+5.  Put your application's native binaries (*.so, *.out, etc) to the current working directory
 
-    They are used by `afgprof` to resolve symbols and line numbers.
+    They are used by `afgprof.py` to resolve symbols and line numbers.
 
-    If you want to put them elsewhere, you can specify it via the `-objdir` option.
+    If you want to put them elsewhere, you can specify it via the `--objdir` option.
 
-6.  Run `afgprof <pid>` to read the profile result, it outputs JSON to stdout
+6.  Run `afgprof.py <pid>` to read the profile result, it outputs JSON to stdout
 
-    `afgprof 19212` (for example, if your pid is 19212)
+    `afgprof.py 19212` (for example, if your pid is 19212)
+    
+Call Graph
+----------
 
-    (see below for JSON format)
+`afgprof.py OPTIONS | afgprof2dot.py | dot -Tsvg callgraph.svg`
 
-Command Line Options
---------------------
+Example
+-------
 
-```
-Usage: afgprof [options] DIRECTORY
-
-  DIRECTORY
-        directory to find profile data
-  -addr2line string
-        specify the addr2line command (default "eu-addr2line")
-  -j int
-        number of addr2line workers to run simultaneously (default 1)
-  -objdir string
-        directory to find compiled objects in (default "objects")
-```
-
-Output format
--------------
+The makefile in `gmon/` contains an example of how to build a gprof-enabled executable
 
 ```
-{
-    "calls": [{
-        "caller": int,  // runtime pc
-        "callee": int,  // runtime pc
-        "count": int,  // call count
-    }],
-    "index": [{
-        "pc": int,  // runtime program counter
-        "symbol": string,  // the name of the symbol
-        "object": string,  // the object (*.so, *.out, etc) where the symbol lives in
-        "offset": int,  // offset according to object
-        "source_file": string,
-        "line_number": string,  // line number of the source file
-    }]
-}
+adb shell mkdir -p /data/gmon
+adb shell chmod 777 /data/gmon
+cd gmon
+make profile
+# assuming pid is 1468
+../afgprof.py gmon/1468 | ../afgprof2dot.py | dot -Tsvg -o callgraph.svg
 ```
+
+To use clang:
+
+```
+make clean
+make profile COMPILER=clang
+```
+
+Options
+-------
+
+see `afgprof.py --help` and `afgprof2dot.py --help`
+
+LICENSE
+-------
+
+`afgprof2dot.py` is adapted from https://github.com/jrfonseca/gprof2dot.
+
+`gmon/tree.h` is adapted from libbsd.
+
+Their licenses are included at the beginning of the file.
+
+Other code here is licensed under the MIT license.
